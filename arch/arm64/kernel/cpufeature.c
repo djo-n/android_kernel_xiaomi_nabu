@@ -973,6 +973,8 @@ static bool cpu_has_broken_dbm(void)
 		MIDR_RANGE(MIDR_CORTEX_A55, 0, 0, 1, 0),
 		MIDR_RANGE(MIDR_KRYO3S, 7, 12, 7, 12),
 		MIDR_RANGE(MIDR_KRYO4S, 7, 12, 7, 12),
+		/* Kryo4xx Silver (rdpe => r1p0) */
+		MIDR_RANGE(MIDR_QCOM_KRYO_4XX_SILVER, 0xd, 0xe, 0xd, 0xe),
 #endif
 		{},
 	};
