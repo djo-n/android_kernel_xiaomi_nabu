@@ -1530,7 +1530,7 @@ static int get_args(uint32_t kernel, struct smq_invoke_ctx *ctx)
 	int outbufs = REMOTE_SCALARS_OUTBUFS(sc);
 	int handles, bufs = inbufs + outbufs;
 	uintptr_t args;
-	size_t rlen = 0, copylen = 0, metalen = 0, lrpralen = 0;
+	size_t rlen = 0, copylen = 0, metalen = 0, lrpralen = 0, templen = 0;
 	int i, oix;
 	int err = 0, j = 0;
 	int mflags = 0;
@@ -1619,10 +1619,11 @@ static int get_args(uint32_t kernel, struct smq_invoke_ctx *ctx)
 			copylen = ALIGN(copylen, BALIGN);
 		mstart = ctx->overps[oix]->mstart;
 		mend = ctx->overps[oix]->mend;
-		VERIFY(err, (mend - mstart) <= LONG_MAX);
+		templen = mend - mstart;
+		VERIFY(err, ((templen <= LONG_MAX) && (copylen <= (LONG_MAX - templen))));
 		if (err)
 			goto bail;
-		copylen += mend - mstart;
+		copylen += templen;
 		VERIFY(err, copylen >= 0);
 		if (err)
 			goto bail;
