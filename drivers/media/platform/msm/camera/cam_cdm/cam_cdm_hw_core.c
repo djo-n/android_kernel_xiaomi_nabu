@@ -455,7 +455,7 @@ int cam_hw_cdm_submit_bl(struct cam_hw_info *cdm_hw,
 		uint64_t hw_vaddr_ptr = 0;
 		size_t len = 0;
 
-		if ((!cdm_cmd->cmd[i].len) &&
+		if ((!cdm_cmd->cmd[i].len) ||
 			(cdm_cmd->cmd[i].len > 0x100000)) {
 			CAM_ERR(CAM_CDM,
 				"cmd len(%d) is invalid cnt=%d total cnt=%d",
