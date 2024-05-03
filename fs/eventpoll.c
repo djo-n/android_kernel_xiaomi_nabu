@@ -881,9 +881,16 @@ static int ep_eventpoll_release(struct inode *inode, struct file *file)
 
 static inline unsigned int ep_item_poll(struct epitem *epi, poll_table *pt)
 {
-	pt->_key = epi->event.events;
+	struct file *file = epi->ffd.file;
+	unsigned int res;
 
-	return epi->ffd.file->f_op->poll(epi->ffd.file, pt) & epi->event.events;
+	/* ep->mtx keeps the allocation alive, but f_count can be zero. */
+	if (!atomic_long_inc_not_zero(&file->f_count))
+		return 0;
+	pt->_key = epi->event.events;
+	res = file->f_op->poll(file, pt) & epi->event.events;
+	fput(file);
+	return res;
 }
 
 static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
