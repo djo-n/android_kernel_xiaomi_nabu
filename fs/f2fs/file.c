@@ -947,6 +947,10 @@ int f2fs_setattr(struct dentry *dentry, struct iattr *attr)
 				return err;
 		}
 
+		/* Remove blocks only after existing direct IO has completed. */
+		if (attr->ia_size < old_size)
+			inode_dio_wait(inode);
+
 		down_write(&F2FS_I(inode)->i_gc_rwsem[WRITE]);
 		down_write(&F2FS_I(inode)->i_mmap_sem);
 
@@ -1750,6 +1754,9 @@ static long f2fs_fallocate(struct file *file, int mode,
 		return -EOPNOTSUPP;
 
 	inode_lock(inode);
+
+	/* Block removal must not race an outstanding direct write. */
+	inode_dio_wait(inode);
 
 	if (mode & FALLOC_FL_PUNCH_HOLE) {
 		if (offset >= inode->i_size)
