@@ -695,6 +695,13 @@ static int msm_lsm_reg_model(struct snd_pcm_substream *substream,
 	 */
 
 	sm = &prtd->lsm_client->stage_cfg[p_info->stage_idx].sound_model;
+	if ((sm->size - offset) < p_info->param_size) {
+		dev_err(rtd->dev, "%s: user buff size is greater than expected\n",
+			__func__);
+		rc = -EINVAL;
+		goto err_copy;
+	}
+
 	if (copy_from_user((u8 *)sm->data + offset,
 			   p_info->param_data, p_info->param_size)) {
 		dev_err(rtd->dev,
