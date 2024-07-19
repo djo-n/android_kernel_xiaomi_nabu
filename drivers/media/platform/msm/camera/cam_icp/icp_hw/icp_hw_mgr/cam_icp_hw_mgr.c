@@ -4006,6 +4006,11 @@ static int cam_icp_packet_generic_blob_handler(void *user_data,
 
 	switch (blob_type) {
 	case CAM_ICP_CMD_GENERIC_BLOB_CLK:
+		if (index >= CAM_FRAME_CMD_MAX) {
+			CAM_ERR(CAM_ICP, "Invalid index %u", index);
+			return -EINVAL;
+		}
+
 		if (blob_size != sizeof(struct cam_icp_clk_bw_request)) {
 			rc = -EINVAL;
 			break;
