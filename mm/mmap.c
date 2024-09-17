@@ -2895,8 +2895,10 @@ SYSCALL_DEFINE5(remap_file_pages, unsigned long, start, unsigned long, size,
 	}
 
 	file = get_file(vma->vm_file);
-	ret = do_mmap_pgoff(vma->vm_file, start, size,
-			prot, flags, pgoff, &populate, NULL);
+	ret = security_mmap_file(file, prot, flags);
+	if (!ret)
+		ret = do_mmap_pgoff(file, start, size,
+				    prot, flags, pgoff, &populate, NULL);
 	fput(file);
 out:
 	up_write(&mm->mmap_sem);
