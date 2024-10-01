@@ -179,14 +179,15 @@ static bool icmpv6_mask_allow(int type)
 	return false;
 }
 
-static bool icmpv6_global_allow(int type)
+static bool icmpv6_global_allow(int type, bool *apply_ratelimit)
 {
 	if (icmpv6_mask_allow(type))
 		return true;
 
-	if (icmp_global_allow())
+	if (icmp_global_allow()) {
+		*apply_ratelimit = true;
 		return true;
-
+	}
 	return false;
 }
 
@@ -194,13 +195,13 @@ static bool icmpv6_global_allow(int type)
  * Check the ICMP output rate limit
  */
 static bool icmpv6_xrlim_allow(struct sock *sk, u8 type,
-			       struct flowi6 *fl6)
+			       struct flowi6 *fl6, bool apply_ratelimit)
 {
 	struct net *net = sock_net(sk);
 	struct dst_entry *dst;
 	bool res = false;
 
-	if (icmpv6_mask_allow(type))
+	if (!apply_ratelimit)
 		return true;
 
 	/*
@@ -228,6 +229,8 @@ static bool icmpv6_xrlim_allow(struct sock *sk, u8 type,
 		if (peer)
 			inet_putpeer(peer);
 	}
+	if (res)
+		icmp_global_consume();
 	dst_release(dst);
 	return res;
 }
@@ -430,6 +433,7 @@ void icmp6_send(struct sk_buff *skb, u8 type, u8 code, __u32 info,
 	struct sock *sk;
 	struct ipv6_pinfo *np;
 	const struct in6_addr *saddr = NULL;
+	bool apply_ratelimit = false;
 	struct dst_entry *dst;
 	struct icmp6hdr tmp_hdr;
 	struct flowi6 fl6;
@@ -506,11 +510,12 @@ void icmp6_send(struct sk_buff *skb, u8 type, u8 code, __u32 info,
 		return;
 	}
 
-	/* Needed by both icmp_global_allow and icmpv6_xmit_lock */
+	/* Needed by both icmpv6_global_allow and icmpv6_xmit_lock */
 	local_bh_disable();
 
 	/* Check global sysctl_icmp_msgs_per_sec ratelimit */
-	if (!(skb->dev->flags&IFF_LOOPBACK) && !icmpv6_global_allow(type))
+	if (!(skb->dev->flags&IFF_LOOPBACK) &&
+	    !icmpv6_global_allow(type, &apply_ratelimit))
 		goto out_bh_enable;
 
 	mip6_addr_swap(skb, parm);
@@ -537,7 +542,7 @@ void icmp6_send(struct sk_buff *skb, u8 type, u8 code, __u32 info,
 	sk->sk_mark = mark;
 	np = inet6_sk(sk);
 
-	if (!icmpv6_xrlim_allow(sk, type, &fl6))
+	if (!icmpv6_xrlim_allow(sk, type, &fl6, apply_ratelimit))
 		goto out;
 
 	tmp_hdr.icmp6_type = type;
