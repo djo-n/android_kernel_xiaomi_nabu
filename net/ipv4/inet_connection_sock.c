@@ -703,8 +703,7 @@ int inet_rtx_syn_ack(const struct sock *parent, struct request_sock *req)
 EXPORT_SYMBOL(inet_rtx_syn_ack);
 
 /* return true if req was found in the ehash table */
-static bool reqsk_queue_unlink(struct request_sock_queue *queue,
-			       struct request_sock *req)
+static bool reqsk_queue_unlink(struct request_sock *req)
 {
 	struct inet_hashinfo *hashinfo = req_to_sk(req)->sk_prot->h.hashinfo;
 	bool found = false;
@@ -716,17 +715,27 @@ static bool reqsk_queue_unlink(struct request_sock_queue *queue,
 		found = __sk_nulls_del_node_init_rcu(req_to_sk(req));
 		spin_unlock(lock);
 	}
-	if (timer_pending(&req->rsk_timer) && del_timer_sync(&req->rsk_timer))
-		reqsk_put(req);
 	return found;
+}
+
+static void __inet_csk_reqsk_queue_drop(struct sock *sk,
+				      struct request_sock *req, bool from_timer)
+{
+	bool unlinked = reqsk_queue_unlink(req);
+
+	if (!from_timer && del_timer_sync(&req->rsk_timer))
+		reqsk_put(req);
+
+	if (unlinked) {
+		reqsk_queue_removed(&inet_csk(sk)->icsk_accept_queue, req);
+		reqsk_put(req);
+	}
+
 }
 
 void inet_csk_reqsk_queue_drop(struct sock *sk, struct request_sock *req)
 {
-	if (reqsk_queue_unlink(&inet_csk(sk)->icsk_accept_queue, req)) {
-		reqsk_queue_removed(&inet_csk(sk)->icsk_accept_queue, req);
-		reqsk_put(req);
-	}
+	__inet_csk_reqsk_queue_drop(sk, req, false);
 }
 EXPORT_SYMBOL(inet_csk_reqsk_queue_drop);
 
@@ -800,7 +809,8 @@ static void reqsk_timer_handler(unsigned long data)
 		return;
 	}
 drop:
-	inet_csk_reqsk_queue_drop_and_put(sk_listener, req);
+	__inet_csk_reqsk_queue_drop(sk_listener, req, true);
+	reqsk_put(req);
 }
 
 static void reqsk_queue_hash_req(struct request_sock *req,
