@@ -4058,33 +4058,44 @@ static int cam_isp_packet_generic_blob_handler(void *user_data,
 	}
 		break;
 	case CAM_ISP_GENERIC_BLOB_TYPE_BW_CONFIG: {
-		struct cam_isp_bw_config    *bw_config;
+		struct cam_isp_bw_config    *bw_config_u;
+		struct cam_isp_bw_config_internal    bw_config;
 		struct cam_isp_prepare_hw_update_data   *prepare_hw_data;
+		uint32_t num_rdi;
+		size_t bw_config_size;
 
 		if (blob_size < sizeof(struct cam_isp_bw_config)) {
 			CAM_ERR(CAM_ISP, "Invalid blob size %u", blob_size);
 			return -EINVAL;
 		}
 
-		bw_config = (struct cam_isp_bw_config *)blob_data;
+		bw_config_u = (struct cam_isp_bw_config *)blob_data;
+		num_rdi = READ_ONCE(bw_config_u->num_rdi);
 
-		if (bw_config->num_rdi > CAM_IFE_RDI_NUM_MAX) {
+		if (num_rdi > CAM_IFE_RDI_NUM_MAX) {
 			CAM_ERR(CAM_ISP, "Invalid num_rdi %u in bw config",
-				bw_config->num_rdi);
+				num_rdi);
 			return -EINVAL;
 		}
 
-		if (blob_size < (sizeof(uint32_t) * 2 + (bw_config->num_rdi + 2)
-			* sizeof(struct cam_isp_bw_vote))) {
-			CAM_ERR(CAM_ISP, "Invalid blob size %u expected %u",
-				blob_size,
-				sizeof(uint32_t) * 2 + (bw_config->num_rdi + 2)
-				* sizeof(struct cam_isp_bw_vote));
+		bw_config_size = sizeof(uint32_t) * 2 + (num_rdi + 2) *
+			sizeof(struct cam_isp_bw_vote);
+		if (blob_size < bw_config_size) {
+			CAM_ERR(CAM_ISP, "Invalid blob size %u expected %zu",
+				blob_size, bw_config_size);
+			return -EINVAL;
+		}
+
+		memset(&bw_config, 0, sizeof(bw_config));
+		memcpy(&bw_config, bw_config_u, bw_config_size);
+		if (bw_config.num_rdi != num_rdi) {
+			CAM_ERR(CAM_ISP, "num_rdi changed from %u to %u",
+				num_rdi, bw_config.num_rdi);
 			return -EINVAL;
 		}
 
 		if (!prepare || !prepare->priv ||
-			(bw_config->usage_type >= CAM_IFE_HW_NUM_MAX)) {
+			(bw_config.usage_type >= CAM_IFE_HW_NUM_MAX)) {
 			CAM_ERR(CAM_ISP, "Invalid inputs");
 			rc = -EINVAL;
 			break;
@@ -4092,49 +4103,62 @@ static int cam_isp_packet_generic_blob_handler(void *user_data,
 
 		prepare_hw_data = (struct cam_isp_prepare_hw_update_data  *)
 			prepare->priv;
-		memcpy(&prepare_hw_data->bw_config[bw_config->usage_type],
-			bw_config, sizeof(prepare_hw_data->bw_config[0]));
-		memset(&prepare_hw_data->bw_config_ab[bw_config->usage_type],
+		memcpy(&prepare_hw_data->bw_config[bw_config.usage_type],
+			&bw_config, sizeof(prepare_hw_data->bw_config[0]));
+		memset(&prepare_hw_data->bw_config_ab[bw_config.usage_type],
 			0, sizeof(prepare_hw_data->bw_config_ab[0]));
-		prepare_hw_data->bw_config_valid[bw_config->usage_type] = true;
+		prepare_hw_data->bw_config_valid[bw_config.usage_type] = true;
 
 	}
 		break;
 	case CAM_ISP_GENERIC_BLOB_TYPE_BW_CONFIG_V2: {
-		struct cam_isp_bw_config_ab    *bw_config_ab;
-
+		struct cam_isp_bw_config_ab    *bw_config_ab_u;
+		struct cam_isp_bw_config_internal_ab    bw_config_ab;
 		struct cam_isp_prepare_hw_update_data   *prepare_hw_data;
+		uint32_t num_rdi;
+		size_t bw_config_ab_size;
 
 		if (blob_size < sizeof(struct cam_isp_bw_config_ab)) {
 			CAM_ERR(CAM_ISP, "Invalid blob size %u", blob_size);
 			return -EINVAL;
 		}
 
-		bw_config_ab = (struct cam_isp_bw_config_ab *)blob_data;
+		bw_config_ab_u = (struct cam_isp_bw_config_ab *)blob_data;
+		num_rdi = READ_ONCE(bw_config_ab_u->num_rdi);
 
-		if (bw_config_ab->num_rdi > CAM_IFE_RDI_NUM_MAX) {
+		if (num_rdi > CAM_IFE_RDI_NUM_MAX) {
 			CAM_ERR(CAM_ISP, "Invalid num_rdi %u in bw config ab",
-				bw_config_ab->num_rdi);
+				num_rdi);
 			return -EINVAL;
 		}
 
 		if (blob_size < (sizeof(uint32_t) * 2
-			+ (bw_config_ab->num_rdi + 2)
+			+ (num_rdi + 2)
 			* sizeof(struct cam_isp_bw_vote))) {
-			CAM_ERR(CAM_ISP, "Invalid blob size %u expected %u",
+			CAM_ERR(CAM_ISP, "Invalid blob size %u expected %zu",
 				blob_size,
 				sizeof(uint32_t) * 2
-				+ (bw_config_ab->num_rdi + 2)
+				+ (num_rdi + 2)
 				* sizeof(struct cam_isp_bw_vote));
 			return -EINVAL;
 		}
+
+		bw_config_ab_size = sizeof(uint32_t) * 2 + (num_rdi + 2) *
+			sizeof(uint64_t);
+		memset(&bw_config_ab, 0, sizeof(bw_config_ab));
+		memcpy(&bw_config_ab, bw_config_ab_u, bw_config_ab_size);
+		if (bw_config_ab.num_rdi != num_rdi) {
+			CAM_ERR(CAM_ISP, "num_rdi changed from %u to %u",
+				num_rdi, bw_config_ab.num_rdi);
+			return -EINVAL;
+		}
 		CAM_DBG(CAM_ISP, "AB L:%lld R:%lld usage_type %d",
-			bw_config_ab->left_pix_vote_ab,
-			bw_config_ab->right_pix_vote_ab,
-			bw_config_ab->usage_type);
+			bw_config_ab.left_pix_vote_ab,
+			bw_config_ab.right_pix_vote_ab,
+			bw_config_ab.usage_type);
 
 		if (!prepare || !prepare->priv ||
-			(bw_config_ab->usage_type >= CAM_IFE_HW_NUM_MAX)) {
+			(bw_config_ab.usage_type >= CAM_IFE_HW_NUM_MAX)) {
 			CAM_ERR(CAM_ISP, "Invalid inputs");
 			rc = -EINVAL;
 			break;
@@ -4142,8 +4166,8 @@ static int cam_isp_packet_generic_blob_handler(void *user_data,
 		prepare_hw_data = (struct cam_isp_prepare_hw_update_data  *)
 			prepare->priv;
 
-		memcpy(&prepare_hw_data->bw_config_ab[bw_config_ab->usage_type],
-			bw_config_ab, sizeof(prepare_hw_data->bw_config_ab[0]));
+		memcpy(&prepare_hw_data->bw_config_ab[bw_config_ab.usage_type],
+			&bw_config_ab, sizeof(prepare_hw_data->bw_config_ab[0]));
 	}
 		break;
 	case CAM_ISP_GENERIC_BLOB_TYPE_UBWC_CONFIG: {
