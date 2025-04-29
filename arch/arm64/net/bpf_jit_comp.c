@@ -305,6 +305,9 @@ static void build_bhb_mitigation(struct jit_ctx *ctx)
 	if (arm64_get_spectre_bhb_state() != SPECTRE_MITIGATED)
 		return;
 
+	if (capable(CAP_SYS_ADMIN))
+		return;
+
 	if (k) {
 		emit_a64_mov_i64(r1, k, ctx);
 		emit(A64_B(1), ctx);
