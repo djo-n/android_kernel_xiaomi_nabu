@@ -3919,6 +3919,15 @@ static int cam_icp_process_stream_settings(
 			return -EINVAL;
 		}
 
+		if (cmd_mem_regions->map_info_array[i].offset >= len) {
+			CAM_ERR(CAM_ICP,
+				"Mem region offset exceeds length of the buffer, mem handle: 0x%x, len: %zu, offset: 0x%x",
+				cmd_mem_regions->map_info_array[i].mem_handle,
+				len, cmd_mem_regions->map_info_array[i].offset);
+			kfree(map_cmd);
+			return -EINVAL;
+		}
+
 		map_cmd->mem_map_region_sets[i].start_addr = (uint32_t)iova +
 			(cmd_mem_regions->map_info_array[i].offset);
 		map_cmd->mem_map_region_sets[i].len = (uint32_t) len;
