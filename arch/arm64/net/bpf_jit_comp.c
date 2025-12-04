@@ -305,7 +305,7 @@ static void build_bhb_mitigation(struct jit_ctx *ctx)
 	if (arm64_get_spectre_bhb_state() != SPECTRE_MITIGATED)
 		return;
 
-	if (capable(CAP_SYS_ADMIN))
+	if (ns_capable_noaudit(&init_user_ns, CAP_SYS_ADMIN))
 		return;
 
 	if (k) {
