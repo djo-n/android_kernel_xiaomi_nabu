@@ -387,6 +387,12 @@ static void adreno_input_work(struct work_struct *work)
 
 	device->flags |= KGSL_FLAG_WAKE_ON_TOUCH;
 
+	/* If device is already in SUSPEND state, don't act on touch wakeup */
+	if (device->state == KGSL_STATE_SUSPEND) {
+		mutex_unlock(&device->mutex);
+		return;
+	}
+
 	/*
 	 * Don't schedule adreno_start in a high priority workqueue, we are
 	 * already in a workqueue which should be sufficient
