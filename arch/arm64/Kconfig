@@ -532,6 +532,20 @@ config ARM64_ERRATUM_1188873
 
 	  If unsure, say Y.
 
+config ARM64_ERRATUM_4118414
+	bool "Cortex-A76: broadcast TLBI may complete before affected memory accesses"
+	default y
+	select ARM64_WORKAROUND_REPEAT_TLBI
+	help
+	  Enable the repeat-TLBI workaround for Cortex-A76 erratum 4193800,
+	  including the Qualcomm Kryo 4G CPU identification used by SM8150.
+	  Broadcast TLB invalidation may complete before affected memory
+	  accesses have been globally observed. Repeat the TLBI+DSB sequence.
+
+	  This issue is also known as CVE-2025-10263.
+
+	  If unsure, say Y.
+
 config ARM64_ERRATUM_1286807
 	bool "Cortex-A76: Modification of the translation table for a virtual address might lead to read-after-read ordering violation"
 	default n

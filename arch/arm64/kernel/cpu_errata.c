@@ -717,6 +717,18 @@ const struct arm64_cpu_capabilities arm64_errata[] = {
 		ERRATA_MIDR_REV(MIDR_QCOM_FALKOR_V1, 0, 0),
 	},
 #endif
+#ifdef CONFIG_ARM64_ERRATUM_4118414
+	{
+		.desc = "Broken broadcast TLBI completion",
+		.capability = ARM64_WORKAROUND_REPEAT_TLBI,
+		ERRATA_MIDR_ALL_VERSIONS(MIDR_CORTEX_A76),
+	},
+	{
+		.desc = "Broken broadcast TLBI completion (Kryo 4G)",
+		.capability = ARM64_WORKAROUND_REPEAT_TLBI,
+		ERRATA_MIDR_ALL_VERSIONS(MIDR_KRYO4G),
+	},
+#endif
 #ifdef CONFIG_ARM64_ERRATUM_1286807
 	{
 	/* Cortex-A76 r0p0 to r3p0 */
