@@ -4847,7 +4847,19 @@ static int selinux_socket_accept(struct socket *sock, struct socket *newsock)
 static int selinux_socket_sendmsg(struct socket *sock, struct msghdr *msg,
 				  int size)
 {
-	return sock_has_perm(sock->sk, SOCKET__WRITE);
+	int rc;
+
+	rc = sock_has_perm(sock->sk, SOCKET__WRITE);
+	if (rc)
+		return rc;
+	if (msg->msg_name && (msg->msg_flags & MSG_FASTOPEN) &&
+	    (sock->sk->sk_family == AF_INET ||
+	     sock->sk->sk_family == AF_INET6) &&
+	    sock->sk->sk_type == SOCK_STREAM &&
+	    sock->sk->sk_protocol == IPPROTO_TCP)
+		return selinux_socket_connect(sock, msg->msg_name,
+					      msg->msg_namelen);
+	return 0;
 }
 
 static int selinux_socket_recvmsg(struct socket *sock, struct msghdr *msg,
