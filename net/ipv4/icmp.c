@@ -325,6 +325,7 @@ static bool icmpv4_xrlim_allow(struct net *net, struct rtable *rt,
 			       bool apply_ratelimit)
 {
 	struct dst_entry *dst = &rt->dst;
+	struct net_device *dev;
 	struct inet_peer *peer;
 	bool rc = true;
 	int vif;
@@ -333,10 +334,15 @@ static bool icmpv4_xrlim_allow(struct net *net, struct rtable *rt,
 		return true;
 
 	/* No rate limit on loopback */
-	if (dst->dev && (dst->dev->flags&IFF_LOOPBACK))
+	rcu_read_lock();
+	dev = dst->dev;
+	if (dev && (dev->flags & IFF_LOOPBACK)) {
+		rcu_read_unlock();
 		goto out;
+	}
 
-	vif = l3mdev_master_ifindex(dst->dev);
+	vif = l3mdev_master_ifindex_rcu(dev);
+	rcu_read_unlock();
 	peer = inet_getpeer_v4(net->ipv4.peers, fl4->daddr, vif, 1);
 	rc = inet_peer_xrlim_allow(peer,
 				   READ_ONCE(net->ipv4.sysctl_icmp_ratelimit));
