@@ -882,6 +882,7 @@ struct sock *inet_csk_clone_lock(const struct sock *sk,
 		/* Deinitialize accept_queue to trap illegal accesses. */
 		memset(&newicsk->icsk_accept_queue, 0, sizeof(newicsk->icsk_accept_queue));
 
+		newicsk->unhashed_state = 0;
 		security_inet_csk_clone(newsk, req);
 	}
 	return newsk;

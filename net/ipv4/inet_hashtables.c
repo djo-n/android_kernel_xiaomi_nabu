@@ -675,6 +675,11 @@ int __inet_hash(struct sock *sk, struct sock *osk)
 		return 0;
 	}
 	WARN_ON(!sk_unhashed(sk));
+
+	if (unlikely(inet_csk(sk)->unhashed_state &&
+		     inet_csk(sk)->unhashed_state != TCP_LISTEN))
+		return -EINVAL;
+
 	ilb = &hashinfo->listening_hash[inet_sk_listen_hashfn(sk)];
 
 	spin_lock(&ilb->lock);
@@ -722,6 +727,8 @@ void inet_unhash(struct sock *sk)
 
 	if (sk_unhashed(sk))
 		return;
+
+	inet_csk(sk)->unhashed_state = sk->sk_state;
 
 	if (sk->sk_state == TCP_LISTEN) {
 		ilb = &hashinfo->listening_hash[inet_sk_listen_hashfn(sk)];
@@ -774,6 +781,9 @@ int __inet_hash_connect(struct inet_timewait_death_row *death_row,
 	u32 remaining, offset;
 	int ret, i, low, high;
 	u32 index;
+
+	if (unlikely(inet_csk(sk)->unhashed_state == TCP_LISTEN))
+		return -EINVAL;
 
 	if (port) {
 		local_bh_disable();
