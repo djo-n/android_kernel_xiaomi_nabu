@@ -905,6 +905,8 @@ int dsi_panel_esd_irq_ctrl(struct dsi_panel *panel,
 static int dsi_panel_get_lockdown_from_cmdline(unsigned char *plockdowninfo)
 {
 	int ret = -1;
+	int i;
+	unsigned int lockdown[8];
 	char lockdown_str[40] = {'\0'};
 	char *match = (char *) strnstr(saved_command_line,
 				"msm_drm.panel_lockdown=",
@@ -914,11 +916,13 @@ static int dsi_panel_get_lockdown_from_cmdline(unsigned char *plockdowninfo)
 		memcpy(lockdown_str, (match + strlen("msm_drm.panel_lockdown=")),
 			sizeof(lockdown_str) - 1);
 		if (sscanf(lockdown_str, "0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x",
-				&plockdowninfo[0], &plockdowninfo[1], &plockdowninfo[2], &plockdowninfo[3],
-				&plockdowninfo[4], &plockdowninfo[5], &plockdowninfo[6], &plockdowninfo[7])
+				&lockdown[0], &lockdown[1], &lockdown[2], &lockdown[3],
+				&lockdown[4], &lockdown[5], &lockdown[6], &lockdown[7])
 					!= 8) {
 			pr_err("failed to parse lockdown info from cmdline !\n");
 		} else {
+			for (i = 0; i < 8; i++)
+				plockdowninfo[i] = lockdown[i];
 			pr_info("lockdown info from cmdline = 0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,"
 					"0x%02x,0x%02x,0x%02x",
 					plockdowninfo[0], plockdowninfo[1], plockdowninfo[2], plockdowninfo[3],
