@@ -3593,6 +3593,13 @@ int cs35l41_probe(struct cs35l41_private *cs35l41,
 		goto err;
 	}
 
+	ret = regmap_read(cs35l41->regmap, CS35L41_DEVID_OTP, &devid_otp);
+	if (ret < 0) {
+		dev_err(cs35l41->dev, "Read DEVID OTP failed\n");
+		ret = -EINVAL;
+		goto err;
+	}
+
 	irq_pol = cs35l41_irq_gpio_config(cs35l41);
 
 	mutex_init(&cs35l41->vol_ctl.vol_mutex);
@@ -3708,12 +3715,6 @@ int cs35l41_probe(struct cs35l41_private *cs35l41,
 	regmap_write(cs35l41->regmap, CS35L41_DSP1_CCM_CORE_CTRL, 0);
 	cs35l41_dsp_init(cs35l41);
 
-	ret = regmap_read(cs35l41->regmap, CS35L41_DEVID_OTP, &devid_otp);
-	if (ret < 0) {
-		dev_err(cs35l41->dev, "Read DEVID OTP failed\n");
-		ret = -EINVAL;
-		goto err;
-	}
 	if (devid_otp == CS35L41LV_CHIP_ID) {
 		cs35l41_tmp_ctl = cs35l41_lv_ctl;
 		num_cs35l41_tmp_ctl = ARRAY_SIZE(cs35l41_lv_ctl);
