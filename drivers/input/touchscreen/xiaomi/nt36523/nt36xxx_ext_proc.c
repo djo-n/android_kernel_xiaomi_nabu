@@ -1008,7 +1008,7 @@ static ssize_t nvt_pf_switch_proc_write(struct file *filp,
 	int32_t ret;
 	int32_t tmp;
 	uint8_t pf_switch;
-	char *tmp_buf;
+	char *tmp_buf = NULL;
 
 	NVT_LOG("++\n");
 
@@ -1197,7 +1197,7 @@ static ssize_t nvt_sensitivity_switch_proc_write(struct file *filp,
 	int32_t ret;
 	int32_t tmp;
 	uint8_t sensitivity_switch;
-	char *tmp_buf;
+	char *tmp_buf = NULL;
 
 	NVT_LOG("++\n");
 
@@ -1775,7 +1775,7 @@ static ssize_t nvt_hand_only_switch_proc_write(struct file *filp,
 	int32_t ret;
 	int32_t tmp;
 	uint8_t hand_only_switch;
-	char *tmp_buf;
+	char *tmp_buf = NULL;
 
 	NVT_LOG("++\n");
 
@@ -1962,7 +1962,7 @@ static ssize_t nvt_drag_latency_switch_proc_write(struct file *filp,
 	int32_t ret;
 	int32_t tmp;
 	uint8_t drag_latency_switch;
-	char *tmp_buf;
+	char *tmp_buf = NULL;
 
 	NVT_LOG("++\n");
 
@@ -2152,7 +2152,7 @@ static ssize_t nvt_small_jitter_switch_proc_write(struct file *filp,
 	int32_t ret;
 	int32_t tmp;
 	uint8_t small_jitter_switch;
-	char *tmp_buf;
+	char *tmp_buf = NULL;
 
 	NVT_LOG("++\n");
 
@@ -2340,7 +2340,7 @@ static ssize_t nvt_game_mode_switch_proc_write(struct file *filp,
 	int32_t ret;
 	int32_t tmp;
 	uint8_t game_mode_switch;
-	char *tmp_buf;
+	char *tmp_buf = NULL;
 
 	NVT_LOG("++\n");
 
