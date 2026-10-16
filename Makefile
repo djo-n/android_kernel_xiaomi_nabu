@@ -542,6 +542,9 @@ endif # CLANG_TARGET_FLAGS
 else
 CLANG_FLAGS	+= --target=$(notdir $(CROSS_COMPILE:%-=%))
 endif # CROSS_COMPILE
+ifneq ($(findstring android,$(CLANG_FLAGS)),)
+$(error Android clang target ($(filter --target=%,$(CLANG_FLAGS))) reads the stack canary from TPIDR_EL0 and the kernel hangs at boot; use CROSS_COMPILE=aarch64-linux-gnu-)
+endif
 
 ifeq ($(LLVM_IAS),0)
 CLANG_FLAGS	+= -no-integrated-as
