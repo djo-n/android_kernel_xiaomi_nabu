@@ -1673,7 +1673,7 @@ int fg_debugfs_create(struct fg_dev *fg)
 	fg->dfs_root = debugfs_create_dir("fg", NULL);
 	if (IS_ERR_OR_NULL(fg->dfs_root)) {
 		if (PTR_ERR(fg->dfs_root) == -ENODEV)
-			pr_err("debugfs is not enabled in the kernel\n");
+			pr_debug("debugfs is not enabled in the kernel\n");
 		else
 			pr_err("error creating fg dfs root rc=%ld\n",
 			       (long)fg->dfs_root);
