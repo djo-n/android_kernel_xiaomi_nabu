@@ -119,7 +119,7 @@ void uvc_debugfs_init(void)
 
 	dir = debugfs_create_dir("uvcvideo", usb_debug_root);
 	if (IS_ERR_OR_NULL(dir)) {
-		uvc_printk(KERN_INFO, "Unable to create debugfs directory\n");
+		pr_debug("uvcvideo: Unable to create debugfs directory\n");
 		return;
 	}
 
