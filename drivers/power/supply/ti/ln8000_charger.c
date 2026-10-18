@@ -30,7 +30,6 @@
 #include <linux/pm_runtime.h>
 #include <linux/pm_wakeup.h>
 #include <linux/power_supply.h>
-#include <linux/gpio/consumer.h>
 #include <linux/i2c.h>
 #include <linux/regmap.h>
 #include <linux/sysfs.h>
@@ -93,8 +92,6 @@
 	ln_info("-> %s\n", desc)
 #define LN8000_IS_PRIMARY(info) (info->dev_role == LN_PRIMARY)
 #define LN8000_ROLE(info) (LN8000_IS_PRIMARY(info) ? "prim" : "sec ")
-#define LN8000_USE_GPIO(pdata) \
-	((pdata != NULL) && (!IS_ERR_OR_NULL(pdata->irq_gpio)))
 #define LN8000_STATUS(val, mask) ((val & mask) ? true : false)
 
 /**
@@ -1408,22 +1405,11 @@ static irqreturn_t ln8000_interrupt_handler(int irq, void *data)
 
 static int ln8000_irq_init(struct ln8000_info *info)
 {
-	const struct ln8000_platform_data *pdata = info->pdata;
 	int ret;
 	u8 mask;
 	u32 int_reg;
 
-	if (LN8000_IS_PRIMARY(info)) {
-		if (info->pdata->irq_gpio) {
-			info->client->irq = gpiod_to_irq(pdata->irq_gpio);
-			if (info->client->irq < 0) {
-				ln_err("fail to get irq from gpio(irq_gpio=%p)\n",
-				       pdata->irq_gpio) info->client->irq = 0;
-				return -EINVAL;
-			}
-			ln_info("mapped GPIO to irq (%d)\n", info->client->irq);
-		}
-	} else {
+	if (!LN8000_IS_PRIMARY(info)) {
 		/* grab IRQ from primary device */
 		ln_info("mapped shared GPIO to (primary dev) irq (%d)\n",
 			info->client->irq);
@@ -1537,16 +1523,6 @@ static int ln8000_parse_dt(struct ln8000_info *info)
 		return -EINVAL;
 
 	ln_info("info->client->irq=%d\n", info->client->irq);
-
-	if (!info->client->irq) {
-		pdata->irq_gpio = gpiod_get(dev, "irqb", GPIOD_IN);
-		if (LN8000_USE_GPIO(pdata)) {
-			ln_info("[gpio] found valid GPIO/IRQ descriptor\n");
-		} else {
-			ln_info("[gpio] unspecified or invalid GPIO descriptor\n");
-			pdata->irq_gpio = 0;
-		}
-	}
 
 	/* device configuration */
 	ret = of_property_read_u32(np, "ln8000_charger,bat-ovp-threshold",
@@ -1751,9 +1727,6 @@ static int ln8000_probe(struct i2c_client *client,
 err_wakeup:
 	if (LN8000_IS_PRIMARY(info) && client->irq) {
 		free_irq(client->irq, info);
-		if (info->pdata->irq_gpio) {
-			gpiod_put(info->pdata->irq_gpio);
-		}
 	}
 err_psy:
 	power_supply_unregister(info->psy_chg);
@@ -1780,9 +1753,6 @@ static int ln8000_remove(struct i2c_client *client)
 
 	if (LN8000_IS_PRIMARY(info) && client->irq) {
 		free_irq(client->irq, info);
-		if (info->pdata->irq_gpio) {
-			gpiod_put(info->pdata->irq_gpio);
-		}
 	}
 
 	power_supply_unregister(info->psy_chg);

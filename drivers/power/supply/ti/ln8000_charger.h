@@ -254,9 +254,6 @@ enum ln8000_adc_hibernate_delay_desc {
  * driver instance structure definition
  */
 struct ln8000_platform_data {
-	struct gpio_desc
-		*irq_gpio; /* GPIO pin for (generic/power-on) interrupt  */
-
 	/* feature configuration */
 	unsigned int bat_ovp_th; /* battery ovp threshold (mV) */
 	unsigned int bat_ovp_alarm_th; /* battery ovp alarm threshold (mV) */
