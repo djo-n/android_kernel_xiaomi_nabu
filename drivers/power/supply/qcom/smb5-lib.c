@@ -3607,7 +3607,7 @@ static int smblib_therm_charging(struct smb_charger *chg)
 		if (chg->use_bq_pump) {
 			if (chg->pps_thermal_level < 0)
 					chg->pps_thermal_level = chg->system_temp_level;
-			pr_err("chg->pps_thermal_level=%d,chg->system_temp_level=%d\n", chg->pps_thermal_level, chg->system_temp_level);
+			pr_debug("chg->pps_thermal_level=%d,chg->system_temp_level=%d\n", chg->pps_thermal_level, chg->system_temp_level);
 			thermal_fcc_ua =
 					chg->thermal_fcc_pps_cp[chg->pps_thermal_level];
 		} else {
