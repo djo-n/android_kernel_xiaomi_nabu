@@ -8255,7 +8255,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 	pdata->adc2_sel_gpio_p = of_parse_phandle(pdev->dev.of_node,
 			"qcom,adc2-switch-gpio", 0);
 	if (!pdata->adc2_sel_gpio_p) {
-		dev_err(&pdev->dev, "property %s not detected in node %s",
+		dev_dbg(&pdev->dev, "property %s not detected in node %s",
 				"qcom,adc2-switch-gpio",
 				pdev->dev.of_node->full_name);
 	}
@@ -8266,7 +8266,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 	pdata->usbc_en2_gpio = of_get_named_gpio(card->dev->of_node,
 				    "qcom,usbc-analog-en2-gpio", 0);
 	if (!gpio_is_valid(pdata->usbc_en2_gpio)) {
-		dev_err(card->dev, "%s, property %s not in node %s",
+		dev_dbg(card->dev, "%s, property %s not in node %s",
 			__func__, "qcom,usbc-analog-en2-gpio",
 			card->dev->of_node->full_name);
 	}
