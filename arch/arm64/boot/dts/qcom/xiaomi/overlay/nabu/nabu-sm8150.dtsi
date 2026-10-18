@@ -1165,11 +1165,6 @@ And public attribution of xiaomi platforms(like J20S and so and)
 	};
 };
 
-&sdhc_2 {
-	cd-gpios = <&tlmm 96 GPIO_ACTIVE_HIGH>;
-	status = "ok";
- };
-
 &tlmm {
         /* GPIO_37 : FP_RESET_N */
         msm_gpio_37: msm_gpio_37 {
