@@ -2979,7 +2979,7 @@ static void msm_geni_serial_debug_init(struct uart_port *uport, bool console)
 
 	msm_port->dbg = debugfs_create_dir(dev_name(uport->dev), NULL);
 	if (IS_ERR_OR_NULL(msm_port->dbg))
-		dev_err(uport->dev, "Failed to create dbg dir\n");
+		dev_dbg(uport->dev, "Failed to create dbg dir\n");
 
 	if (!console) {
 		memset(name, 0, sizeof(name));
