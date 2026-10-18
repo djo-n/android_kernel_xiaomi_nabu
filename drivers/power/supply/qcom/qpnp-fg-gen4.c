@@ -5109,6 +5109,8 @@ static int fg_psy_get_property(struct power_supply *psy,
 
 		rc = power_supply_get_property(fg->max_verify_psy,
 					POWER_SUPPLY_PROP_PAGE0_DATA, &b_val);
+		if (rc < 0)
+			break;
 		memcpy(pval->arrayval, b_val.arrayval, 16);
 		memcpy(chip->ds_page0, b_val.arrayval, 16);
 #ifdef CONFIG_MACH_XIAOMI_NABU
