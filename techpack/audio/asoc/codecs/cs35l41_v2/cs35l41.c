@@ -1855,11 +1855,14 @@ static int cs35l41_main_amp_event(struct snd_soc_dapm_widget *w,
 			ret = cs35l41_set_csplmboxcmd(cs35l41, mboxcmd);
 		}
 
+		/* An amplifier never enabled raises no power-down done */
+		regmap_read(cs35l41->regmap, CS35L41_PWR_CTRL1, &val);
+		pdn = !(val & CS35L41_GLOBAL_EN_MASK);
+
 		regmap_update_bits(cs35l41->regmap, CS35L41_PWR_CTRL1,
 				   CS35L41_GLOBAL_EN_MASK, 0);
 
-		pdn = false;
-		for (i = 0; i < 100; i++) {
+		for (i = 0; !pdn && i < 100; i++) {
 			regmap_read(cs35l41->regmap, CS35L41_IRQ1_STATUS1,
 				    &val);
 			if (val & CS35L41_PDN_DONE_MASK) {
