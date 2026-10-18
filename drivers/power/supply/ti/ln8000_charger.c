@@ -1536,17 +1536,6 @@ static int ln8000_parse_dt(struct ln8000_info *info)
 	if (np == NULL)
 		return -EINVAL;
 
-	/* first we try to used client->irq */
-	if (info->client->irq == 0) {
-		/* sencond we try to used irq_index info */
-		ret = of_property_read_u32(np, "ln8000_charger,irq_index",
-					   &prop);
-		if (ret < 0) {
-			ln_err("can't get irq_index(ret=%d)\n", ret);
-			prop = 0;
-		}
-		info->client->irq = prop;
-	}
 	ln_info("info->client->irq=%d\n", info->client->irq);
 
 	if (!info->client->irq) {
