@@ -2798,7 +2798,9 @@ static int dsi_panel_parse_fod_dim_lut(struct dsi_panel *panel,
 	int i;
 
 	len = utils->count_u32_elems(utils->data, "qcom,disp-fod-dim-lut");
-	if (len <= 0 || len % BRIGHTNESS_ALPHA_PAIR_LEN) {
+	if (len <= 0)
+		return 0;
+	if (len % BRIGHTNESS_ALPHA_PAIR_LEN) {
 		pr_err("[%s] invalid number of elements, rc=%d\n",
 				panel->name, rc);
 		rc = -EINVAL;
