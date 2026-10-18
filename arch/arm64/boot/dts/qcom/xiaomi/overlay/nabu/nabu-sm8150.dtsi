@@ -213,7 +213,6 @@ And public attribution of xiaomi platforms(like J20S and so and)
                 //interrupts = <55 0x2002>;
                 //pinctrl-names = "default";
                 //pinctrl-0 = <&bq2597x_int_default &bq2597x_int_suspend>;
-		ln8000_charger,irq_index = <296>;
 		/* device configuration */
 		ln8000_charger,bat-ovp-threshold = <4560>;
                 ln8000_charger,bat-ovp-alarm-threshold = <4525>;
