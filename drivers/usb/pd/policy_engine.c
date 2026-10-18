@@ -4692,7 +4692,7 @@ static ssize_t usbpd_verifed_store(struct device *dev,
 		pd->verifed = 0;
 		return -EINVAL;
 	}
-	usbpd_err(&pd->dev, "batterysecret set usbpd verifed :%d\n", val);
+	usbpd_info(&pd->dev, "batterysecret set usbpd verifed :%d\n", val);
 
 	pd->verifed = val;
 
@@ -5399,7 +5399,7 @@ struct usbpd *usbpd_create(struct device *parent)
 	ret = of_property_read_u32(parent->of_node, "mi,pd_curr_limit",
 			&pd->limit_curr);
 	if (ret) {
-		usbpd_err(&pd->dev, "do not limit current\n");
+		usbpd_dbg(&pd->dev, "do not limit current\n");
 		pd->limit_curr = false;
 	}
 
