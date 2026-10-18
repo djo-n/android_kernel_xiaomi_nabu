@@ -297,6 +297,18 @@ And public attribution of xiaomi platforms(like J20S and so and)
 		status = "disabled";
 	};
 
+	ipa_smmu_ap {
+		status = "disabled";
+	};
+
+	ipa_smmu_wlan {
+		status = "disabled";
+	};
+
+	ipa_smmu_uc {
+		status = "disabled";
+	};
+
 	onewire_gpio: onewire_gpio {
 		compatible = "xiaomi,onewire_gpio";
 		label = "xm_onewire";
