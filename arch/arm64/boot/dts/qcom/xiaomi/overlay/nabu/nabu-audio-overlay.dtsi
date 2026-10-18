@@ -49,3 +49,19 @@
 	qcom,cdc-micbias3-mv = <1800>;
 	qcom,cdc-micbias4-mv = <1800>;
 };
+
+&tdm_sen_rx {
+	status = "disabled";
+};
+
+&tdm_sen_tx {
+	status = "disabled";
+};
+
+&dai_sen_auxpcm {
+	status = "disabled";
+};
+
+&dai_hdmi_ms {
+	status = "disabled";
+};
