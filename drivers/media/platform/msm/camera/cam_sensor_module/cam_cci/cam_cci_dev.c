@@ -486,32 +486,6 @@ static struct platform_driver cci_driver = {
 	},
 };
 
-static int cam_cci_assign_fops(void)
-{
-	struct v4l2_subdev *sd;
-	int i = 0;
-
-	for (; i < MAX_CCI; i++) {
-		sd = g_cci_subdev[i];
-		if (!sd)
-			return 0;
-		if (!(sd->devnode)) {
-			CAM_ERR(CAM_CCI,
-			"Invalid dev node:%pK offset: %d",
-			sd->devnode, i);
-			return -EINVAL;
-		}
-		sd->devnode->fops = &cci_v4l2_subdev_fops;
-	}
-
-	return 0;
-}
-
-static int __init cam_cci_late_init(void)
-{
-	return cam_cci_assign_fops();
-}
-
 static int __init cam_cci_init_module(void)
 {
 	return platform_driver_register(&cci_driver);
@@ -523,7 +497,6 @@ static void __exit cam_cci_exit_module(void)
 }
 
 module_init(cam_cci_init_module);
-late_initcall(cam_cci_late_init);
 module_exit(cam_cci_exit_module);
 MODULE_DESCRIPTION("MSM CCI driver");
 MODULE_LICENSE("GPL v2");
