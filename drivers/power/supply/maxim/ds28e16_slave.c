@@ -1210,7 +1210,7 @@ static int verify_get_property(struct power_supply *psy,
 			return -EAGAIN;
 		break;
 	default:
-		ds_err("unsupported property %d\n", psp);
+		pr_debug("unsupported property %d\n", psp);
 		return -ENODATA;
 	}
 
