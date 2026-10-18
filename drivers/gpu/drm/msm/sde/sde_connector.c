@@ -2388,6 +2388,8 @@ struct drm_connector *sde_connector_init(struct drm_device *dev,
 		/* register esd irq and enable it after panel enabled */
 		if (dsi_display && dsi_display->panel &&
 			dsi_display->panel->esd_config.esd_err_irq_gpio > 0) {
+			irq_set_status_flags(dsi_display->panel->esd_config.esd_err_irq,
+					IRQ_NOAUTOEN);
 			rc = request_threaded_irq(dsi_display->panel->esd_config.esd_err_irq,
 							NULL, esd_err_irq_handle,
 							dsi_display->panel->esd_config.esd_err_irq_flags,
