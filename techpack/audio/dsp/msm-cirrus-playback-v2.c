@@ -967,7 +967,7 @@ EXPORT_SYMBOL(msm_crus_pb_set_copp_idx);
 
 void msm_crus_pb_add_controls(struct snd_soc_component *component)
 {
-	pr_err("Wing: %s: \n", __func__);
+	pr_debug("Wing: %s: \n", __func__);
 	snd_soc_add_component_controls(component, crus_core_controls,
 				       ARRAY_SIZE(crus_core_controls));
 	pr_info("%s: end\n", __func__);

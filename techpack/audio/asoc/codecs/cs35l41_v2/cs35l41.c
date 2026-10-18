@@ -2679,7 +2679,6 @@ static int cs35l41_component_probe(struct snd_soc_component *component)
 		/* BST_CTL_LIM_EN = 1 BST_CTL_SEL = b'01 (Class H tracking) */
 		regmap_write(cs35l41->regmap, CS35L41_BSTCVRT_VCTRL2, 0x5);
 
-	dev_err(cs35l41->dev, "skip wm_adsp\n");
 	/* These should only run once, not every hibernate cycle */
 	if (!(cs35l41->skip_codec_probe)) {
 		wm_adsp2_component_probe(&cs35l41->dsp, component);
