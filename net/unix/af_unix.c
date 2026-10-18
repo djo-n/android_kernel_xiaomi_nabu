@@ -2225,6 +2225,7 @@ static long unix_stream_data_wait(struct sock *sk, long timeo,
 				  bool freezable)
 {
 	struct sk_buff *tail;
+	bool tail_len_changed;
 	DEFINE_WAIT(wait);
 
 	unix_state_lock(sk);
@@ -2232,9 +2233,14 @@ static long unix_stream_data_wait(struct sock *sk, long timeo,
 	for (;;) {
 		prepare_to_wait(sk_sleep(sk), &wait, TASK_INTERRUPTIBLE);
 
+		/* readers unlink and sendpage grows the tail under this lock */
+		spin_lock(&sk->sk_receive_queue.lock);
 		tail = skb_peek_tail(&sk->sk_receive_queue);
+		tail_len_changed = tail && tail->len != last_len;
+		spin_unlock(&sk->sk_receive_queue.lock);
+
 		if (tail != last ||
-		    (tail && tail->len != last_len) ||
+		    tail_len_changed ||
 		    sk->sk_err ||
 		    (sk->sk_shutdown & RCV_SHUTDOWN) ||
 		    signal_pending(current) ||
