@@ -5462,6 +5462,7 @@ static int idtp9220_get_prop(struct power_supply *psy,
 			val->intval = temp;
 		else
 			val->intval = 0;
+		break;
 	default:
 		return -EINVAL;
 	}
