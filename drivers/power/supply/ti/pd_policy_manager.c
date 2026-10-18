@@ -1531,7 +1531,6 @@ static int usbpd_pm_probe(struct platform_device *pdev)
 	spin_lock_init(&pdpm->psy_change_lock);
 
 	usbpd_check_cp_psy(pdpm);
-	usbpd_check_cp_sec_psy(pdpm);
 	usbpd_check_usb_psy(pdpm);
 
 	INIT_WORK(&pdpm->cp_psy_change_work, cp_psy_change_work);
