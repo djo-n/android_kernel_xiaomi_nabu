@@ -56,6 +56,9 @@
 		hsuart1 = &qupv3_se4_2uart;
 		spi0 = &qupv3_se3_spi;
 		i2c0 = &qupv3_se4_i2c;
+		i2c1 = &qupv3_se0_i2c;
+		i2c2 = &qupv3_se7_i2c;
+		i2c4 = &qupv3_se17_i2c;
 	};
 
 	cpus {
