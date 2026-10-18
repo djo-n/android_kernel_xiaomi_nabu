@@ -1243,3 +1243,7 @@ And public attribution of xiaomi platforms(like J20S and so and)
 &pcie0 {
 	status = "disabled";
 };
+
+&pcie1 {
+	status = "disabled";
+};

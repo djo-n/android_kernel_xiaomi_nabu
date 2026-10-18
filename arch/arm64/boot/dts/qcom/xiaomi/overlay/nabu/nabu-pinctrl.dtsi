@@ -429,21 +429,6 @@
 	};
 
 
-	pcie1 {
-		pcie1_wake_default: pcie1_wake_default {
-			mux {
-				pins = "gpio114";
-				function = "gpio";
-			};
-
-			config {
-				pins = "gpio114";
-				drive-strength = <2>;
-				bias-pull-up;
-			};
-		};
-	};
-
 	nfc {
 		nfc_int_active: nfc_int_active {
 			/* active state */
