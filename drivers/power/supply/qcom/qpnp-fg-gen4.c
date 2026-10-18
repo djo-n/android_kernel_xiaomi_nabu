@@ -1844,7 +1844,7 @@ static int fg_gen4_get_batt_profile(struct fg_dev *fg)
 			profile_node = of_batterydata_get_best_profile(batt_node, // comment for git
 					fg->batt_id_ohms / 1000, "J20S_nvt_5160mah");
 		} else {
-			pr_err("cmdline of batt profile is not defined, read page0 to reload file\n");
+			pr_info("cmdline of batt profile is not defined, read page0 to reload file\n");
 		}
 		// the battery is xiaomi's batt; FC code, custom id
 		if ((chip->ds_romid[0] == 0x9F) && ((chip->ds_romid[5] & 0xF0) == 0xF0)
