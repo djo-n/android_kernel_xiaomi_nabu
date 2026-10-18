@@ -1732,7 +1732,7 @@ static void register_cluster_lpm_stats(struct lpm_cluster *cl,
 	kfree(level_name);
 
 	list_for_each_entry(cpu, &cl->cpu, list) {
-		pr_err("%s()\n", __func__);
+		pr_debug("%s()\n", __func__);
 		register_cpu_lpm_stats(cpu, cl);
 	}
 	if (!list_empty(&cl->cpu))
