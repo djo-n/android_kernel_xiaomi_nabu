@@ -1245,3 +1245,7 @@ And public attribution of xiaomi platforms(like J20S and so and)
 &pcie1 {
 	status = "disabled";
 };
+
+&extcon_usb1 {
+	status = "disabled";
+};
