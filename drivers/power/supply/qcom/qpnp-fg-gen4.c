@@ -4860,7 +4860,7 @@ static int fg_gen4_set_vbatt_full_vol(struct fg_dev *fg, bool enable_ffc)
 	else
 		volt = fg->bp.vbatt_full_mv;
 	if (volt < 0)
-		return rc;
+		return volt;
 	rc = fg_set_constant_chg_voltage(fg, volt * 1000);
 	if (rc < 0) {
 		pr_err("Error in constant chg vol rc=%d\n", rc);
