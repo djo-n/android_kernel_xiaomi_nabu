@@ -622,6 +622,9 @@ static void register_disk(struct device *parent, struct gendisk *disk)
 	blkdev_put(bdev, FMODE_READ);
 
 exit:
+	if (disk->flags & GENHD_FL_DEFER_UEVENTS)
+		return;
+
 	/* announce disk after possible partitions are created */
 	dev_set_uevent_suppress(ddev, 0);
 	kobject_uevent(&ddev->kobj, KOBJ_ADD);

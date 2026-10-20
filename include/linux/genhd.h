@@ -142,6 +142,8 @@ struct hd_struct {
 #define GENHD_FL_BLOCK_EVENTS_ON_EXCL_WRITE	256
 #define GENHD_FL_NO_PART_SCAN			512
 #define GENHD_FL_NO_RANDOMIZE			1024
+/* no KOBJ_ADD from register_disk(); the driver unsuppresses and sends it */
+#define GENHD_FL_DEFER_UEVENTS			2048
 
 enum {
 	DISK_EVENT_MEDIA_CHANGE			= 1 << 0, /* media changed */
