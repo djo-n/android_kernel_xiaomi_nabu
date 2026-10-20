@@ -242,6 +242,13 @@ static int dm_hash_insert(const char *name, const char *uuid, struct mapped_devi
 	mutex_lock(&dm_hash_cells_mutex);
 	dm_set_mdptr(md, cell);
 	mutex_unlock(&dm_hash_cells_mutex);
+
+	/*
+	 * GENHD_FL_DEFER_UEVENTS: the add uevent goes out here, under
+	 * _hash_lock, so no ioctl reaches the device before its add uevent
+	 */
+	dev_set_uevent_suppress(disk_to_dev(dm_disk(md)), 0);
+	dm_kobject_uevent(md, KOBJ_ADD, 0);
 	up_write(&_hash_lock);
 
 	return 0;

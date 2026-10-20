@@ -1785,6 +1785,7 @@ static struct mapped_device *alloc_dev(int minor)
 	md->disk->queue = md->queue;
 	md->disk->private_data = md;
 	sprintf(md->disk->disk_name, "dm-%d", minor);
+	md->disk->flags |= GENHD_FL_DEFER_UEVENTS;
 
 	dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
 	if (!dax_dev)
