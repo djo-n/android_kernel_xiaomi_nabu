@@ -350,7 +350,7 @@ int cam_cdm_get_ioremap_from_base(uint32_t hw_base,
 static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 	uint32_t base_array_size,
 	struct cam_soc_reg_map *base_table[CAM_SOC_MAX_BLOCK],
-	uint32_t cmd_buf_size, uint32_t *cmd_buf, void *buf,
+	uint32_t cmd_buf_size, void *buf,
 	resource_size_t *size,
 	enum cam_cdm_command cmd_type)
 {
@@ -377,7 +377,6 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 	switch (cmd_type) {
 	case CAM_CDM_CMD_REG_RANDOM: {
 		struct cdm_regrandom_cmd *reg_random = (struct cdm_regrandom_cmd *)buf;
-		uint32_t *data, offset;
 
 		if ((!reg_random->count) ||
 			(((reg_random->count * (sizeof(uint32_t) * CAM_CDM_REG_RANDOM_CMD_WORDS)) +
@@ -385,19 +384,6 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 			CAM_ERR(CAM_CDM, "invalid reg_count  %d cmd_buf_size %d",
 				reg_random->count, cmd_buf_size);
 			return -EINVAL;
-		}
-
-		data = cmd_buf + cdm_get_cmd_header_size(CAM_CDM_CMD_REG_RANDOM);
-
-		for (i = 0; i < reg_random->count; i++) {
-			offset = data[0];
-			if (offset > (*size - sizeof(uint32_t))) {
-				CAM_ERR(CAM_CDM, "Offset out of mapped range, size:%llu offset:%u",
-					*size, offset);
-				return -EINVAL;
-			}
-
-			data += CAM_CDM_REG_RANDOM_CMD_WORDS;
 		}
 
 		}
@@ -482,7 +468,7 @@ static int cam_cdm_util_reg_cont_write(void __iomem *base_addr,
 
 	memcpy(&reg_cont, cmd_buf, sizeof(struct cdm_regcontinuous_cmd));
 	rc = cam_cdm_util_cmd_buf_validation(base_addr, base_array_size, base_table,
-		cmd_buf_size, cmd_buf, (void *)&reg_cont, &size, CAM_CDM_CMD_REG_CONT);
+		cmd_buf_size, (void *)&reg_cont, &size, CAM_CDM_CMD_REG_CONT);
 	if (rc) {
 		CAM_ERR(CAM_CDM, "Validation failed! rc=%d", rc);
 		return rc;
@@ -504,12 +490,12 @@ static int cam_cdm_util_reg_random_write(void __iomem *base_addr,
 {
 	int i, rc = 0;
 	struct cdm_regrandom_cmd reg_random;
-	uint32_t *data;
+	uint32_t *data, offset, value;
 	resource_size_t size = 0;
 
 	memcpy(&reg_random, cmd_buf, sizeof(struct cdm_regrandom_cmd));
 	rc = cam_cdm_util_cmd_buf_validation(base_addr, base_array_size, base_table,
-		cmd_buf_size, cmd_buf, (void *)&reg_random, &size, CAM_CDM_CMD_REG_RANDOM);
+		cmd_buf_size, (void *)&reg_random, &size, CAM_CDM_CMD_REG_RANDOM);
 	if (rc) {
 		CAM_ERR(CAM_CDM, "Validation failed! rc=%d", rc);
 		return rc;
@@ -518,10 +504,16 @@ static int cam_cdm_util_reg_random_write(void __iomem *base_addr,
 	data = cmd_buf + cdm_get_cmd_header_size(CAM_CDM_CMD_REG_RANDOM);
 
 	for (i = 0; i < reg_random.count; i++) {
+		offset = READ_ONCE(data[0]);
+		value = READ_ONCE(data[1]);
+		if (offset > (size - sizeof(uint32_t))) {
+			CAM_ERR(CAM_CDM, "Offset out of mapped range, size:%llu offset:%u",
+				size, offset);
+			return -EINVAL;
+		}
 		CAM_DBG(CAM_CDM, "reg random: offset %pK, value 0x%x",
-			((void __iomem *)(base_addr + data[0])),
-			data[1]);
-		cam_io_w(data[1], base_addr + data[0]);
+			((void __iomem *)(base_addr + offset)), value);
+		cam_io_w(value, base_addr + offset);
 		data += CAM_CDM_REG_RANDOM_CMD_WORDS;
 	}
 
@@ -543,7 +535,7 @@ static int cam_cdm_util_swd_dmi_write(uint32_t cdm_cmd_type,
 
 	memcpy(&swd_dmi, cmd_buf, sizeof(struct cdm_dmi_cmd));
 	rc = cam_cdm_util_cmd_buf_validation(base_addr, base_array_size, base_table,
-		cmd_buf_size, cmd_buf, (void *)&swd_dmi, &size, cdm_cmd_type);
+		cmd_buf_size, (void *)&swd_dmi, &size, cdm_cmd_type);
 	if (rc) {
 		CAM_ERR(CAM_CDM, "Validation failed! rc=%d", rc);
 		return rc;
