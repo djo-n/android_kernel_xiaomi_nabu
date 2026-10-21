@@ -380,7 +380,7 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 
 		if ((!reg_random->count) ||
 			(((reg_random->count * (sizeof(uint32_t) * CAM_CDM_REG_RANDOM_CMD_WORDS)) +
-			cdm_get_cmd_header_size(CAM_CDM_CMD_REG_RANDOM)) > cmd_buf_size)) {
+			(4 * cdm_get_cmd_header_size(CAM_CDM_CMD_REG_RANDOM))) > cmd_buf_size)) {
 			CAM_ERR(CAM_CDM, "invalid reg_count  %d cmd_buf_size %d",
 				reg_random->count, cmd_buf_size);
 			return -EINVAL;
@@ -392,7 +392,7 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 		struct cdm_regcontinuous_cmd *reg_cont = (struct cdm_regcontinuous_cmd *) buf;
 
 		if ((!reg_cont->count) || (((reg_cont->count * sizeof(uint32_t)) +
-			cdm_get_cmd_header_size(CAM_CDM_CMD_REG_CONT)) > cmd_buf_size)) {
+			(4 * cdm_get_cmd_header_size(CAM_CDM_CMD_REG_CONT))) > cmd_buf_size)) {
 			CAM_ERR(CAM_CDM, "buffer size %d is not sufficient for count%d",
 				cmd_buf_size, reg_cont->count);
 			return -EINVAL;
@@ -411,7 +411,7 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 		struct cdm_dmi_cmd *swd_dmi = (struct cdm_dmi_cmd *) buf;
 		uint32_t low_off = 0, high_off = 0;
 
-		if (cmd_buf_size < (cdm_required_size_dmi() + swd_dmi->length + 1)) {
+		if (cmd_buf_size < ((4 * cdm_required_size_dmi()) + swd_dmi->length + 1)) {
 			CAM_ERR(CAM_CDM, "invalid CDM_SWD_DMI length %d", swd_dmi->length + 1);
 			return -EINVAL;
 		}
@@ -433,7 +433,7 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 		struct cdm_dmi_cmd *swd_dmi = (struct cdm_dmi_cmd *) buf;
 		uint32_t low_off = 0;
 
-		if (cmd_buf_size < (cdm_required_size_dmi() + swd_dmi->length + 1)) {
+		if (cmd_buf_size < ((4 * cdm_required_size_dmi()) + swd_dmi->length + 1)) {
 			CAM_ERR(CAM_CDM, "invalid CDM_SWD_DMI length %d", swd_dmi->length + 1);
 			return -EINVAL;
 		}
@@ -465,6 +465,12 @@ static int cam_cdm_util_reg_cont_write(void __iomem *base_addr,
 	uint32_t *data;
 	struct cdm_regcontinuous_cmd reg_cont;
 	resource_size_t size = 0;
+
+	if (cmd_buf_size < sizeof(struct cdm_regcontinuous_cmd)) {
+		CAM_ERR(CAM_CDM, "cmd_buf_size %u too small for the REG_CONT header",
+			cmd_buf_size);
+		return -EINVAL;
+	}
 
 	memcpy(&reg_cont, cmd_buf, sizeof(struct cdm_regcontinuous_cmd));
 	rc = cam_cdm_util_cmd_buf_validation(base_addr, base_array_size, base_table,
@@ -533,6 +539,12 @@ static int cam_cdm_util_swd_dmi_write(uint32_t cdm_cmd_type,
 	uint32_t *data;
 	resource_size_t size = 0;
 
+	if (cmd_buf_size < sizeof(struct cdm_dmi_cmd)) {
+		CAM_ERR(CAM_CDM, "cmd_buf_size %u too small for the DMI header",
+			cmd_buf_size);
+		return -EINVAL;
+	}
+
 	memcpy(&swd_dmi, cmd_buf, sizeof(struct cdm_dmi_cmd));
 	rc = cam_cdm_util_cmd_buf_validation(base_addr, base_array_size, base_table,
 		cmd_buf_size, (void *)&swd_dmi, &size, cdm_cmd_type);
@@ -573,6 +585,12 @@ int cam_cdm_util_cmd_buf_write(void __iomem **current_device_base,
 	uint32_t used_bytes = 0;
 
 	while (cmd_buf_size > 0) {
+		if (cmd_buf_size < sizeof(uint32_t)) {
+			CAM_ERR(CAM_CDM, "cmd_buf_size %u too small for a command",
+				cmd_buf_size);
+			ret = -EINVAL;
+			break;
+		}
 		CAM_DBG(CAM_CDM, "cmd data=%x", *cmd_buf);
 		cdm_cmd_type = (*cmd_buf >> CAM_CDM_COMMAND_OFFSET);
 		switch (cdm_cmd_type) {
