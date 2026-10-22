@@ -90,7 +90,7 @@ int cam_virtual_cdm_submit_bl(struct cam_hw_info *cdm_hw,
 		uintptr_t vaddr_ptr = 0;
 		size_t len = 0;
 
-		if ((!cdm_cmd->cmd[i].len) &&
+		if ((!cdm_cmd->cmd[i].len) ||
 			(cdm_cmd->cmd[i].len > 0x100000)) {
 			CAM_ERR(CAM_CDM,
 				"len(%d) is invalid count=%d total cnt=%d",
