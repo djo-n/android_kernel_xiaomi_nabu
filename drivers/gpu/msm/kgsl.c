@@ -4757,6 +4757,9 @@ kgsl_get_unmapped_area(struct file *file, unsigned long addr,
 	struct kgsl_device *device = dev_priv->device;
 	struct kgsl_mem_entry *entry = NULL;
 
+	if (current->mm != private->mm)
+		return -EACCES;
+
 	if (vma_offset == (unsigned long) device->memstore.gpuaddr)
 		return get_unmapped_area(NULL, addr, len, pgoff, flags);
 
