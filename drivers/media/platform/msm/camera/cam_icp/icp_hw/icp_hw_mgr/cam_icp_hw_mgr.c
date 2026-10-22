@@ -4046,11 +4046,22 @@ static int cam_icp_packet_generic_blob_handler(void *user_data,
 	case CAM_ICP_CMD_GENERIC_BLOB_FW_MEM_MAP:
 		cmd_mem_regions =
 			(struct cam_cmd_mem_regions *)blob_data;
-		if (cmd_mem_regions->num_regions <= 0) {
+		if (blob_size < sizeof(struct cam_cmd_mem_regions)) {
+			rc = -EINVAL;
+			CAM_ERR(CAM_ICP, "Invalid blob size %u for FW map",
+				blob_size);
+		} else if (cmd_mem_regions->num_regions <= 0) {
 			rc = -EINVAL;
 			CAM_ERR(CAM_ICP,
 				"Invalid number of regions for FW map %u",
 				cmd_mem_regions->num_regions);
+		} else if (blob_size < (sizeof(struct cam_cmd_mem_regions) +
+			((cmd_mem_regions->num_regions - 1) *
+			sizeof(struct cam_cmd_mem_region_info)))) {
+			rc = -EINVAL;
+			CAM_ERR(CAM_ICP,
+				"Invalid blob size %u for %u FW map regions",
+				blob_size, cmd_mem_regions->num_regions);
 		} else {
 			CAM_DBG(CAM_ICP,
 				"Processing blob for mapping %u regions",
@@ -4063,11 +4074,22 @@ static int cam_icp_packet_generic_blob_handler(void *user_data,
 	case CAM_ICP_CMD_GENERIC_BLOB_FW_MEM_UNMAP:
 		cmd_mem_regions =
 			(struct cam_cmd_mem_regions *)blob_data;
-		if (cmd_mem_regions->num_regions <= 0) {
+		if (blob_size < sizeof(struct cam_cmd_mem_regions)) {
+			rc = -EINVAL;
+			CAM_ERR(CAM_ICP, "Invalid blob size %u for FW unmap",
+				blob_size);
+		} else if (cmd_mem_regions->num_regions <= 0) {
 			rc = -EINVAL;
 			CAM_ERR(CAM_ICP,
 				"Invalid number of regions for FW unmap %u",
 				cmd_mem_regions->num_regions);
+		} else if (blob_size < (sizeof(struct cam_cmd_mem_regions) +
+			((cmd_mem_regions->num_regions - 1) *
+			sizeof(struct cam_cmd_mem_region_info)))) {
+			rc = -EINVAL;
+			CAM_ERR(CAM_ICP,
+				"Invalid blob size %u for %u FW unmap regions",
+				blob_size, cmd_mem_regions->num_regions);
 		} else {
 			CAM_DBG(CAM_ICP,
 				"Processing blob for unmapping %u regions",
