@@ -38,8 +38,8 @@ struct ib_parser_variables {
 
 /*
  * Used for locating shader objects. This array holds the unit size of shader
- * objects based on type and block of shader. The type can be 0 or 1 hence there
- * are 2 columns and block can be 0-7 hence 7 rows.
+ * objects based on type and block of shader. Type 0 uses the first column and
+ * any other type the second; block can be 0-7, but only blocks 0-6 have a row.
  */
 static int load_state_unit_sizes[7][2] = {
 	{ 2, 4 },
@@ -190,6 +190,9 @@ static int ib_save_mip_addresses(unsigned int *pkt,
 
 	block = (load_state_control >> 19) & 0x07;
 	type = load_state_address & 0x03;
+
+	if (block >= ARRAY_SIZE(load_state_unit_sizes))
+		return 0;
 
 	if (type == 0)
 		unitsize = load_state_unit_sizes[block][0];
