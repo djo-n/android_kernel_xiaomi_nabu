@@ -179,15 +179,17 @@ static int ib_save_mip_addresses(unsigned int *pkt,
 		struct adreno_ib_object_list *ib_obj_list)
 {
 	int ret = 0;
-	int num_levels = (pkt[1] >> 22) & 0x03FF;
+	unsigned int load_state_control = READ_ONCE(pkt[1]);
+	unsigned int load_state_address = READ_ONCE(pkt[2]);
+	int num_levels = (load_state_control >> 22) & 0x03FF;
 	int i;
 	unsigned int *hostptr;
 	struct kgsl_mem_entry *ent;
 	unsigned int block, type;
 	int unitsize = 0;
 
-	block = (pkt[1] >> 19) & 0x07;
-	type = pkt[2] & 0x03;
+	block = (load_state_control >> 19) & 0x07;
+	type = load_state_address & 0x03;
 
 	if (type == 0)
 		unitsize = load_state_unit_sizes[block][0];
@@ -195,7 +197,7 @@ static int ib_save_mip_addresses(unsigned int *pkt,
 		unitsize = load_state_unit_sizes[block][1];
 
 	if (3 == block && 1 == type) {
-		uint64_t gpuaddr = pkt[2] & 0xFFFFFFFC;
+		uint64_t gpuaddr = load_state_address & 0xFFFFFFFC;
 		uint64_t size = (num_levels * unitsize) << 2;
 
 		ent = kgsl_sharedmem_find(process, gpuaddr);
@@ -664,6 +666,7 @@ static int ib_parse_type7_set_draw_state(struct kgsl_device *device,
 	int i;
 	int ret = 0;
 	int flags;
+	unsigned int group_control;
 	uint64_t cmd_stream_dwords;
 	uint64_t cmd_stream_addr;
 
@@ -679,8 +682,9 @@ static int ib_parse_type7_set_draw_state(struct kgsl_device *device,
 			ret = -EINVAL;
 			break;
 		}
+		group_control = READ_ONCE(ptr[i]);
 		/* take action based on flags */
-		flags = (ptr[i] & 0x000F0000) >> 16;
+		flags = (group_control & 0x000F0000) >> 16;
 
 		/*
 		 * dirty flag or no flags both mean we need to load it for
@@ -688,7 +692,7 @@ static int ib_parse_type7_set_draw_state(struct kgsl_device *device,
 		 * or initialized for the first time in the IB
 		 */
 		if (flags & 0x1 || !flags) {
-			cmd_stream_dwords = ptr[i] & 0x0000FFFF;
+			cmd_stream_dwords = group_control & 0x0000FFFF;
 			cmd_stream_addr = ptr[i + 2];
 			cmd_stream_addr = cmd_stream_addr << 32 | ptr[i + 1];
 			if (cmd_stream_dwords)
@@ -706,7 +710,7 @@ static int ib_parse_type7_set_draw_state(struct kgsl_device *device,
 
 			gpuaddr = gpuaddr << 32 | ptr[i + 1];
 			ret = adreno_ib_find_objs(device, process,
-				gpuaddr, (ptr[i] & 0x0000FFFF),
+				gpuaddr, (group_control & 0x0000FFFF),
 				0, SNAPSHOT_GPU_OBJECT_IB,
 				ib_obj_list, 2);
 			if (ret)
@@ -727,6 +731,7 @@ static int ib_parse_set_draw_state(struct kgsl_device *device,
 	int grp_id;
 	int ret = 0;
 	int flags;
+	unsigned int group_control;
 	struct set_draw_state *group;
 
 	/*
@@ -737,9 +742,10 @@ static int ib_parse_set_draw_state(struct kgsl_device *device,
 	 * loop counter by 2 always
 	 */
 	for (i = 1; i <= size; i += 2) {
-		grp_id = (ptr[i] & 0x1F000000) >> 24;
+		group_control = READ_ONCE(ptr[i]);
+		grp_id = (group_control & 0x1F000000) >> 24;
 		/* take action based on flags */
-		flags = (ptr[i] & 0x000F0000) >> 16;
+		flags = (group_control & 0x000F0000) >> 16;
 		/* Disable all groups */
 		if (flags & 0x4) {
 			int j;
@@ -763,14 +769,14 @@ static int ib_parse_set_draw_state(struct kgsl_device *device,
 		 */
 		if (flags & 0x1 || !flags) {
 			group = &(ib_parse_vars->set_draw_groups[grp_id]);
-			group->cmd_stream_dwords = ptr[i] & 0x0000FFFF;
+			group->cmd_stream_dwords = group_control & 0x0000FFFF;
 			group->cmd_stream_addr =  ptr[i + 1];
 			continue;
 		}
 		/* load immediate */
 		if (flags & 0x8) {
 			ret = adreno_ib_find_objs(device, process,
-				ptr[i + 1], (ptr[i] & 0x0000FFFF),
+				ptr[i + 1], (group_control & 0x0000FFFF),
 				0, SNAPSHOT_GPU_OBJECT_IB,
 				ib_obj_list, 2);
 			if (ret)
