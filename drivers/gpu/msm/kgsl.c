@@ -346,8 +346,16 @@ static void kgsl_destroy_ion(struct kgsl_memdesc *memdesc)
 				struct kgsl_mem_entry, memdesc);
 	struct kgsl_dma_buf_meta *meta = entry->priv_data;
 
-	if (memdesc->priv & KGSL_MEMDESC_MAPPED)
+	/*
+	 * The GPU may still map the pages: keep the attachment and its
+	 * table, but leave no list entry or sg_table pointer to them behind.
+	 */
+	if (memdesc->priv & KGSL_MEMDESC_MAPPED) {
+		if (meta != NULL)
+			remove_dmabuf_list(meta);
+		memdesc->sgt = NULL;
 		return;
+	}
 
 	if (meta != NULL) {
 		remove_dmabuf_list(meta);
