@@ -405,6 +405,12 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 			return -EINVAL;
 		}
 
+		if ((reg_cont->offset % sizeof(uint32_t)) != 0) {
+			CAM_ERR(CAM_CDM, "Unaligned register offset: %u",
+				reg_cont->offset);
+			return -EINVAL;
+		}
+
 		}
 		break;
 	case CAM_CDM_CMD_SWD_DMI_64: {
@@ -427,6 +433,12 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 			return -EINVAL;
 		}
 
+		if ((swd_dmi->DMIAddr % sizeof(uint32_t)) != 0) {
+			CAM_ERR(CAM_CDM, "Unaligned DMI address: %u",
+				swd_dmi->DMIAddr);
+			return -EINVAL;
+		}
+
 		}
 		break;
 	case CAM_CDM_CMD_SWD_DMI_32: {
@@ -443,6 +455,12 @@ static int cam_cdm_util_cmd_buf_validation(void __iomem *base_addr,
 		if (low_off > (*size - sizeof(uint32_t))) {
 			CAM_ERR(CAM_CDM, "Offset out of mapped range! size:%llu lo_offset:%u",
 				*size, low_off);
+			return -EINVAL;
+		}
+
+		if ((swd_dmi->DMIAddr % sizeof(uint32_t)) != 0) {
+			CAM_ERR(CAM_CDM, "Unaligned DMI address: %u",
+				swd_dmi->DMIAddr);
 			return -EINVAL;
 		}
 
@@ -515,6 +533,10 @@ static int cam_cdm_util_reg_random_write(void __iomem *base_addr,
 		if (offset > (size - sizeof(uint32_t))) {
 			CAM_ERR(CAM_CDM, "Offset out of mapped range, size:%llu offset:%u",
 				size, offset);
+			return -EINVAL;
+		}
+		if ((offset % sizeof(uint32_t)) != 0) {
+			CAM_ERR(CAM_CDM, "Unaligned register offset: %u", offset);
 			return -EINVAL;
 		}
 		CAM_DBG(CAM_CDM, "reg random: offset %pK, value 0x%x",
