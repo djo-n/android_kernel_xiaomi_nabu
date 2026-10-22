@@ -1401,6 +1401,12 @@ struct sock *tcp_v4_syn_recv_sock(const struct sock *sk, struct sk_buff *skb,
 		inet_csk(newsk)->icsk_ext_hdr_len = inet_opt->opt.optlen;
 	newinet->inet_id = prandom_u32();
 
+#if IS_ENABLED(CONFIG_IPV6)
+	/* put_and_exit must not clean up the listener's ipv6_pinfo */
+	if (opt_child_init)
+		opt_child_init(newsk, sk);
+#endif
+
 	if (!dst) {
 		dst = inet_csk_route_child_sock(sk, newsk, req);
 		if (!dst)
@@ -1410,10 +1416,6 @@ struct sock *tcp_v4_syn_recv_sock(const struct sock *sk, struct sk_buff *skb,
 	}
 	sk_setup_caps(newsk, dst);
 
-#if IS_ENABLED(CONFIG_IPV6)
-	if (opt_child_init)
-		opt_child_init(newsk, sk);
-#endif
 	tcp_ca_openreq_child(newsk, dst);
 
 	tcp_sync_mss(newsk, dst_mtu(dst));
