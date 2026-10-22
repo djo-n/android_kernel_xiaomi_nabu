@@ -950,9 +950,9 @@ int adreno_iommu_set_pt_ctx(struct adreno_ringbuffer *rb,
 	 */
 	if (result && (new_pt != cur_pt)) {
 		if (cpu_path)
-			result = _set_pagetable_cpu(rb, cur_pt);
+			_set_pagetable_cpu(rb, cur_pt);
 		else
-			result = _set_pagetable_gpu(rb, cur_pt);
+			_set_pagetable_gpu(rb, cur_pt);
 	}
 
 	return result;
