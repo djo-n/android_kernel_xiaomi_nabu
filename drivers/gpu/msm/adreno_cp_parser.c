@@ -742,6 +742,10 @@ static int ib_parse_set_draw_state(struct kgsl_device *device,
 	 * loop counter by 2 always
 	 */
 	for (i = 1; i <= size; i += 2) {
+		if (i + 1 > size) {
+			ret = -EINVAL;
+			break;
+		}
 		group_control = READ_ONCE(ptr[i]);
 		grp_id = (group_control & 0x1F000000) >> 24;
 		/* take action based on flags */
