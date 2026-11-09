@@ -3903,6 +3903,15 @@ static int cam_icp_process_stream_settings(
 		((cmd_mem_regions->num_regions - 1) *
 		sizeof(struct mem_map_region_data));
 
+	packet_size =
+		sizeof(struct hfi_cmd_ipebps_async) + map_cmd_size -
+		sizeof(((struct hfi_cmd_ipebps_async *)0)->payload.direct);
+	if (packet_size >= ICP_CMD_Q_SIZE_IN_BYTES) {
+		CAM_ERR(CAM_ICP, "Too many FW map regions %u",
+			cmd_mem_regions->num_regions);
+		return -EINVAL;
+	}
+
 	map_cmd = kzalloc(map_cmd_size, GFP_KERNEL);
 	if (!map_cmd)
 		return -ENOMEM;
@@ -3939,13 +3948,6 @@ static int cam_icp_process_stream_settings(
 
 	map_cmd->mem_map_request_num = cmd_mem_regions->num_regions;
 	map_cmd->user_data = 0;
-
-	packet_size =
-		sizeof(struct hfi_cmd_ipebps_async) +
-		(sizeof(struct hfi_cmd_ipe_bps_map) +
-		((cmd_mem_regions->num_regions - 1) *
-		sizeof(struct mem_map_region_data))) -
-		sizeof(((struct hfi_cmd_ipebps_async *)0)->payload.direct);
 
 	async_direct = kzalloc(packet_size, GFP_KERNEL);
 	if (!async_direct) {
