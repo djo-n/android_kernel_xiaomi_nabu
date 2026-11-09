@@ -3941,9 +3941,11 @@ static int cam_icp_process_stream_settings(
 			(cmd_mem_regions->map_info_array[i].offset);
 		map_cmd->mem_map_region_sets[i].len = (uint32_t) len;
 
-		CAM_DBG(CAM_ICP, "Region %u mem_handle %d iova %pK len %u",
+		CAM_DBG(CAM_ICP, "Region %u mem_handle %d iova %pK len %u offset %u size %u",
 			(i+1), cmd_mem_regions->map_info_array[i].mem_handle,
-			(uint32_t)iova, (uint32_t)len);
+			(uint32_t)iova, (uint32_t)len,
+			cmd_mem_regions->map_info_array[i].offset,
+			cmd_mem_regions->map_info_array[i].size);
 	}
 
 	map_cmd->mem_map_request_num = cmd_mem_regions->num_regions;
