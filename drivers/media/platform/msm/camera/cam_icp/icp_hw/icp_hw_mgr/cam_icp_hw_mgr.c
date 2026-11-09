@@ -4329,9 +4329,9 @@ static int cam_icp_mgr_config_stream_settings(
 	cmd_desc = (struct cam_cmd_buf_desc *)
 		((uint32_t *) &packet->payload + packet->cmd_buf_offset/4);
 
-	if (!cmd_desc[0].length ||
+	if (!packet->num_cmd_buf || !cmd_desc[0].length ||
 		cmd_desc[0].meta_data != CAM_ICP_CMD_META_GENERIC_BLOB) {
-		CAM_ERR(CAM_ICP, "Invalid cmd buffer length/metadata");
+		CAM_ERR(CAM_ICP, "Invalid cmd buffer count/length/metadata");
 		rc = -EINVAL;
 		goto end;
 	}

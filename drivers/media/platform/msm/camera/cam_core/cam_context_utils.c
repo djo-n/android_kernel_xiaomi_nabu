@@ -21,6 +21,7 @@
 #include "cam_context_utils.h"
 #include "cam_mem_mgr.h"
 #include "cam_node.h"
+#include "cam_packet_util.h"
 #include "cam_req_mgr_util.h"
 #include "cam_sync_api.h"
 #include "cam_trace.h"
@@ -312,6 +313,10 @@ int32_t cam_context_config_dev_to_hw(
 	}
 	packet = (struct cam_packet *) ((uint8_t *)packet_addr +
 		(uint32_t)cmd->offset);
+
+	rc = cam_packet_util_validate_packet(packet, len - cmd->offset);
+	if (rc)
+		return rc;
 
 	memset(&cfg, 0, sizeof(cfg));
 	cfg.packet = packet;
