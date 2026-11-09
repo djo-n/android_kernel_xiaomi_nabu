@@ -4145,8 +4145,10 @@ static int cam_icp_process_generic_cmd_buffer(
 
 		rc = cam_packet_util_process_generic_cmd_buffer(&cmd_desc[i],
 			cam_icp_packet_generic_blob_handler, &cmd_generic_blob);
-		if (rc)
+		if (rc) {
 			CAM_ERR(CAM_ICP, "Failed in processing blobs %d", rc);
+			return rc;
+		}
 	}
 
 	return rc;
